@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CareLens AI — Healthcare Information Assistant</title>
+<style>
+:root{
+  --bg:#f5f8fb;--card:#fff;--ink:#17212b;--muted:#687784;--primary:#176b87;
+  --primary2:#0f5269;--accent:#22a06b;--warn:#e99a2b;--danger:#d94c4c;--line:#dfe7ec;
+}
+*{box-sizing:border-box} body{margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+header{background:linear-gradient(135deg,#0d536c,#198aa0);color:white;padding:22px 6%;position:sticky;top:0;z-index:5;box-shadow:0 4px 16px #0002}
+nav{display:flex;justify-content:space-between;align-items:center;gap:15px}.brand{font-size:24px;font-weight:800}.brand span{color:#a9f0d0}
+nav button{background:#ffffff1c;border:1px solid #ffffff55;color:white;border-radius:9px;padding:9px 13px;cursor:pointer}
+.hero{padding:42px 6% 30px;display:grid;grid-template-columns:1.35fr .65fr;gap:25px;align-items:center}
+.hero h1{font-size:42px;margin:0 0 12px}.hero p{font-size:18px;color:#51616d;line-height:1.6;max-width:760px}
+.badge{display:inline-block;background:#dff6eb;color:#08704a;padding:7px 11px;border-radius:20px;font-weight:700;font-size:13px}
+.hero-card{background:white;border:1px solid var(--line);padding:22px;border-radius:18px;box-shadow:0 8px 25px #153c4a12}
+.container{width:88%;max-width:1250px;margin:auto}.tabs{display:flex;gap:8px;overflow:auto;margin:10px 0 20px}.tab{border:1px solid var(--line);background:white;padding:11px 16px;border-radius:10px;cursor:pointer;white-space:nowrap}.tab.active{background:var(--primary);color:white}
+.panel{display:none}.panel.active{display:block}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:18px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 5px 18px #173c4c0a}.card h2,.card h3{margin-top:0}
+textarea,input,select{width:100%;border:1px solid #cdd9df;border-radius:10px;padding:12px;font:inherit;background:#fff}textarea{min-height:230px;resize:vertical}
+.btn{border:0;border-radius:10px;padding:12px 16px;background:var(--primary);color:white;font-weight:700;cursor:pointer}.btn.secondary{background:#e9f2f5;color:#14566b}.btn.green{background:var(--accent)}.btn.warn{background:var(--warn)}.btn.danger{background:var(--danger)}
+.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:12px}.small{font-size:13px;color:var(--muted)}.output{white-space:pre-wrap;line-height:1.65;background:#f7fafb;border:1px solid var(--line);padding:15px;border-radius:12px;margin-top:13px;min-height:80px}
+.metric{font-size:30px;font-weight:800}.status{padding:7px 10px;border-radius:9px;display:inline-block;font-weight:700;font-size:13px}.safe{background:#dff6eb;color:#08704a}.watch{background:#fff1d8;color:#8a5b00}.urgent{background:#ffe0e0;color:#9d2222}
+.term{border:1px solid var(--line);border-radius:12px;padding:13px;margin:9px 0;background:white}.term b{color:var(--primary2)}
+.question{padding:12px;border-left:4px solid var(--primary);background:#f1f7f9;margin:9px 0;border-radius:7px}
+footer{margin-top:40px;background:#14232c;color:#cbd7dd;padding:25px 6%;font-size:13px}
+.disclaimer{background:#fff7e8;border:1px solid #f0d29a;color:#72520b;border-radius:12px;padding:13px;margin:15px 0}
+@media(max-width:850px){.hero,.grid,.grid3{grid-template-columns:1fr}.hero h1{font-size:32px}.container{width:94%}}
+</style>
+</head>
+<body>
+<header>
+<nav>
+<div class="brand">🩺 CareLens <span>AI</span></div>
+<div>
+<button onclick="setLanguage('English')">EN</button>
+<button onclick="setLanguage('తెలుగు')">తెలుగు</button>
+<button onclick="setLanguage('हिन्दी')">हिन्दी</button>
+</div>
+</nav>
+</header>
+
+<section class="hero">
+<div>
+<span class="badge">HACKATHON PROTOTYPE • AI HEALTHCARE INFORMATION</span>
+<h1>Understand your health report in simple language.</h1>
+<p>CareLens AI turns difficult medical terminology and report values into easy-to-understand information, creates a doctor-question list, highlights values that may need attention, and provides general health guidance.</p>
+<div class="actions">
+<button class="btn" onclick="document.getElementById('reportText').focus()">Analyze a Report</button>
+<button class="btn secondary" onclick="loadDemo()">Try Demo Report</button>
+</div>
+</div>
+<div class="hero-card">
+<h3>What makes our solution different?</h3>
+<p>👤 <b>Personalized:</b> explanation based on age and user context.</p>
+<p>🧠 <b>AI-ready:</b> LLM integration point + local fallback engine.</p>
+<p>📋 <b>Actionable:</b> summary + questions for the doctor.</p>
+<p>🔐 <b>Privacy-first:</b> prototype stores data only in this browser.</p>
+</div>
+</section>
+
+<main class="container">
+<div class="disclaimer">⚠️ <b>Safety:</b> This prototype provides educational information, not a diagnosis or prescription. A doctor or qualified healthcare professional should make clinical decisions. If symptoms are severe or life-threatening, seek emergency medical care.</div>
+
+<div class="tabs">
+<button class="tab active" data-tab="analyze">📄 Report Analyzer</button>
+<button class="tab" data-tab="terms">🔎 Medical Terms</button>
+<button class="tab" data-tab="questions">👨‍⚕️ Doctor Questions</button>
+<button class="tab" data-tab="health">🌿 Health Guide</button>
+<button class="tab" data-tab="history">🕘 History</button>
+</div>
+
+<section id="analyze" class="panel active">
+<div class="grid">
+<div class="card">
+<h2>1. Enter Medical Report</h2>
+<p class="small">Paste text copied from a lab report, prescription, discharge summary, or medical document.</p>
+<input id="age" type="number" min="1" max="120" placeholder="Age (optional)" style="margin-bottom:9px">
+<select id="context" style="margin-bottom:9px">
+<option>General health check</option><option>Diabetes monitoring</option><option>Blood pressure / heart health</option><option>Infection / fever</option><option>Other</option>
+</select>
+<textarea id="reportText" placeholder="Example:
+Hemoglobin: 10.5 g/dL
+WBC: 8,000 /µL
+Glucose (fasting): 118 mg/dL
+Vitamin D: 18 ng/mL
+Blood Pressure: 138/88 mmHg
+Diagnosis: mild anemia"></textarea>
+<div class="actions">
+<label class="btn secondary" style="cursor:pointer">📎 Read .txt
+<input type="file" id="fileInput" accept=".txt,.csv" hidden></label>
+<button class="btn" onclick="analyzeReport()">✨ Analyze with CareLens</button>
+<button class="btn secondary" onclick="clearReport()">Clear</button>
+</div>
+<p class="small">For this offline prototype, analysis uses a transparent rule-based fallback. Connect an LLM/API for production-level document understanding.</p>
+</div>
+
+<div class="card">
+<h2>2. AI Explanation</h2>
+<div id="summary" class="output">Your simple-language report summary will appear here.</div>
+<div id="flags"></div>
+<div class="grid3" style="margin-top:13px">
+<div><div class="metric" id="findings">0</div><div class="small">Findings detected</div></div>
+<div><div class="metric" id="watchCount">0</div><div class="small">Need discussion</div></div>
+<div><div class="metric" id="safeCount">0</div><div class="small">Within demo range</div></div>
+</div>
+</div>
+</div>
+
+<div class="card" style="margin-top:18px">
+<h3>How the prototype works</h3>
+<div class="grid3">
+<div><b>① Input</b><p class="small">User pastes report text or uploads a TXT/CSV report.</p></div>
+<div><b>② Understand</b><p class="small">Term detection, value extraction and rule-based safety flags simulate an AI/LLM layer.</p></div>
+<div><b>③ Explain</b><p class="small">Plain-language summary, discussion points and doctor questions are generated.</p></div>
+</div>
+</div>
+</section>
+
+<section id="terms" class="panel">
+<div class="card">
+<h2>Medical Term Translator</h2>
+<p class="small">Type a medical term and get a simple explanation. This is an educational glossary, not a diagnostic engine.</p>
+<div class="actions"><input id="termInput" placeholder="Try: hemoglobin, glucose, BP, cholesterol"><button class="btn" onclick="explainTerm()">Explain</button></div>
+<div id="termResult" class="output">Example: Type <b>hemoglobin</b>.</div>
+<div id="termList"></div>
+</div>
+</section>
+
+<section id="questions" class="panel">
+<div class="card">
+<h2>Questions to Ask Your Doctor</h2>
+<p class="small">These questions are generated from the report findings and help the patient prepare for a consultation.</p>
+<div id="questionsList"><div class="question">Analyze a report first to generate personalized discussion questions.</div></div>
+<button class="btn secondary" onclick="copyQuestions()">📋 Copy Questions</button>
+</div>
+</section>
+
+<section id="health" class="panel">
+<div class="grid3">
+<div class="card"><h3>💧 Daily basics</h3><p>Maintain hydration, regular sleep, balanced meals, and appropriate physical activity unless your clinician has given different advice.</p></div>
+<div class="card"><h3>🥗 Food awareness</h3><p>Prefer a balanced plate with vegetables, whole grains, protein sources and appropriate portions. Dietary needs vary by condition.</p></div>
+<div class="card"><h3>🩺 Follow-up</h3><p>Keep reports together, note symptoms and medicines, and take a list of questions to your healthcare professional.</p></div>
+</div>
+<div class="card" style="margin-top:18px">
+<h2>🚨 When not to wait</h2>
+<p>If someone has severe breathing difficulty, severe chest pain, loss of consciousness, sudden weakness, severe bleeding, or another potentially life-threatening emergency, seek emergency medical care immediately rather than relying on this app.</p>
+</div>
+</section>
+
+<section id="history" class="panel">
+<div class="card">
+<h2>Local Analysis History</h2>
+<p class="small">The prototype saves only analysis summaries in this browser using LocalStorage. No server is used.</p>
+<div id="historyList"></div>
+<button class="btn danger" onclick="clearHistory()">Delete Local History</button>
+</div>
+</section>
+</main>
+
+<footer>
+<b>CareLens AI — Hackathon Prototype</b><br><br>
+Suggested production architecture: Web/Mobile UI → secure backend → OCR/document parser → LLM with medical guardrails → validated clinical knowledge source → audit logs → encrypted database. Never expose API keys in frontend code.
+</footer>
+
+<script>
+const terms={
+hemoglobin:"Hemoglobin is a protein in red blood cells that carries oxygen around the body. A low value can have several causes, so the result should be interpreted with the full blood count and clinical context.",
+glucose:"Blood glucose means the amount of sugar (glucose) in the blood. The meaning of a result depends on whether the test was fasting, after a meal, and on the laboratory reference range.",
+"fasting glucose":"Fasting glucose is blood sugar measured after a period without food. One result alone does not establish a diagnosis.",
+wbc:"White blood cells (WBCs) are immune cells that help the body respond to infections and other conditions. The count should be interpreted with symptoms and the lab range.",
+"vitamin d":"Vitamin D is involved in bone health and other body functions. Low levels may be described as vitamin D insufficiency or deficiency depending on the laboratory and clinical context.",
+cholesterol:"Cholesterol is a type of fat carried in the blood. Clinicians usually consider LDL, HDL, triglycerides, overall cardiovascular risk and other factors together.",
+ldl:"LDL is often called 'bad cholesterol' because higher levels can contribute to plaque formation in arteries. Target levels depend on individual cardiovascular risk.",
+hdl:"HDL is often called 'good cholesterol'. It is one part of the overall lipid profile and should not be interpreted by itself.",
+"blood pressure":"Blood pressure measures the force of blood against artery walls. It is written as systolic/diastolic pressure. Repeated measurements are generally more useful than a single reading.",
+bp:"Blood pressure measures the force of blood against artery walls. It is written as systolic/diastolic pressure. Repeated measurements are generally more useful than a single reading.",
+platelets:"Platelets help blood clot. A result that is high or low can have many causes and should be interpreted using the complete blood count and clinical context.",
+creatinine:"Creatinine is a waste product commonly used as one marker of kidney function. Interpretation can depend on age, muscle mass and other factors."
+};
+let latestQuestions=[];
+
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+ document.querySelectorAll('.panel').forEach(x=>x.classList.remove('active'));
+ b.classList.add('active');document.getElementById(b.dataset.tab).classList.add('active');
+ if(b.dataset.tab==='history')renderHistory();
+});
+
+document.getElementById('fileInput').addEventListener('change',e=>{
+ const f=e.target.files[0]; if(!f)return;
+ const r=new FileReader(); r.onload=()=>document.getElementById('reportText').value=r.result; r.readAsText(f);
+});
+
+function loadDemo(){
+ document.getElementById('age').value=22;
+ document.getElementById('reportText').value=`Hemoglobin: 10.5 g/dL
+WBC: 8,000 /µL
+Platelets: 2.4 lakh /µL
+Glucose (fasting): 118 mg/dL
+Vitamin D: 18 ng/mL
+Blood Pressure: 138/88 mmHg
+Creatinine: 0.8 mg/dL
+Diagnosis: mild anemia`;
+ analyzeReport();
+}
+function clearReport(){document.getElementById('reportText').value='';document.getElementById('summary').textContent='Your simple-language report summary will appear here.';document.getElementById('flags').innerHTML='';document.getElementById('findings').textContent='0';document.getElementById('watchCount').textContent='0';document.getElementById('safeCount').textContent='0';}
+function numAfter(text,rx){const m=text.match(rx);return m?parseFloat(m[1].replace(',','')):null}
+function analyzeReport(){
+ const text=document.getElementById('reportText').value.trim(); if(!text){alert('Please enter or upload a report first.');return;}
+ const lower=text.toLowerCase(); let findings=[],watch=0,safe=0;
+ const hb=numAfter(lower,/hemoglobin\s*[:=-]?\s*(\d+(?:\.\d+)?)/);
+ const glucose=numAfter(lower,/(?:fasting\s*)?(?:glucose|blood sugar)\s*[:=-]?\s*(\d+(?:\.\d+)?)/);
+ const vitd=numAfter(lower,/(?:vitamin\s*d|25[- ]?oh vitamin d)\s*[:=-]?\s*(\d+(?:\.\d+)?)/);
+ const creat=numAfter(lower,/creatinine\s*[:=-]?\s*(\d+(?:\.\d+)?)/);
+ const bp=lower.match(/(?:blood pressure|bp)\s*[:=-]?\s*(\d{2,3})\s*\/\s*(\d{2,3})/);
+ if(hb!==null){if(hb<12){findings.push(['Hemoglobin',hb+' g/dL','Below the common adult reference range; possible anemia should be discussed with a clinician.','watch']);watch++;}else{findings.push(['Hemoglobin',hb+' g/dL','Not flagged by this demo rule. Always compare with your laboratory range.','safe']);safe++;}}
+ if(glucose!==null){if(glucose>=100){findings.push(['Fasting glucose',glucose+' mg/dL','Above the common fasting range used for screening. A clinician may recommend repeat or confirmatory testing.','watch']);watch++;}else{findings.push(['Fasting glucose',glucose+' mg/dL','Not flagged by this demo rule.','safe']);safe++;}}
+ if(vitd!==null){if(vitd<20){findings.push(['Vitamin D',vitd+' ng/mL','Low in many commonly used reference systems; discuss appropriate evaluation and treatment with a clinician.','watch']);watch++;}else{findings.push(['Vitamin D',vitd+' ng/mL','Not flagged by this demo rule.','safe']);safe++;}}
+ if(bp){let s=+bp[1],d=+bp[2]; if(s>=130||d>=80){findings.push(['Blood pressure',s+'/'+d+' mmHg','This reading may be elevated depending on the guideline used. Repeated measurements and clinical context matter.','watch']);watch++;}else{findings.push(['Blood pressure',s+'/'+d+' mmHg','Not flagged by this demo rule.','safe']);safe++;}}
+ if(creat!==null){findings.push(['Creatinine',creat+' mg/dL','Needs interpretation with age, sex, muscle mass and other kidney-related measures.','safe']);safe++;}
+ const detected=Object.keys(terms).filter(k=>lower.includes(k)).filter((v,i,a)=>a.indexOf(v)===i).slice(0,6);
+ detected.forEach(k=>{if(!findings.some(f=>f[0].toLowerCase().includes(k.split(' ')[0]))){}});
+ let summary='CareLens found '+findings.length+' measurable item(s) in the text. ';
+ if(watch) summary+=watch+' item(s) may need discussion with a healthcare professional. ';
+ if(!watch) summary+='No item was flagged by the limited demo rules. ';
+ summary+='This is not a diagnosis, and laboratory reference ranges can differ.';
+ if(document.getElementById('age').value) summary+=' User age entered: '+document.getElementById('age').value+'.';
+ document.getElementById('summary').textContent=summary;
+ document.getElementById('findings').textContent=findings.length;
+ document.getElementById('watchCount').textContent=watch;
+ document.getElementById('safeCount').textContent=safe;
+ document.getElementById('flags').innerHTML=findings.map(f=>`<div class="term"><b>${f[0]} — ${f[1]}</b><br><span class="status ${f[3]==='watch'?'watch':'safe'}">${f[3]==='watch'?'DISCUSS':'NOT FLAGGED'}</span><p>${f[2]}</p></div>`).join('');
+ latestQuestions=makeQuestions(findings);
+ document.getElementById('questionsList').innerHTML=latestQuestions.map(q=>`<div class="question">${q}</div>`).join('');
+ localStorage.setItem('carelens_latest',JSON.stringify({date:new Date().toLocaleString(),summary,findings}));
+ let hist=JSON.parse(localStorage.getItem('carelens_history')||'[]');hist.unshift({date:new Date().toLocaleString(),summary,findings:findings.map(x=>x[0]+': '+x[1])});localStorage.setItem('carelens_history',JSON.stringify(hist.slice(0,10)));
+}
+function makeQuestions(findings){
+ let qs=['Can you explain these results in relation to my symptoms and overall health?','Which results should we repeat, and when?','Do I need any additional tests or follow-up?'];
+ findings.filter(f=>f[3]==='watch').forEach(f=>qs.push(`What could cause my ${f[0]} result (${f[1]}) to be outside the usual range?`));
+ qs.push('Are there lifestyle changes or treatments you recommend for my situation?');
+ return qs;
+}
+function explainTerm(){
+ const q=document.getElementById('termInput').value.toLowerCase().trim();
+ if(!q){document.getElementById('termResult').textContent='Please enter a medical term.';return}
+ const key=Object.keys(terms).find(k=>k===q||q.includes(k)||k.includes(q));
+ document.getElementById('termResult').innerHTML=key?`<b>${key.toUpperCase()}</b><br>${terms[key]}`:`<b>Term not in offline glossary.</b><br>For production, connect this module to a trusted medical terminology/knowledge source and an LLM with safety guardrails.`;
+}
+function renderTerms(){document.getElementById('termList').innerHTML=Object.keys(terms).slice(0,10).map(k=>`<div class="term"><b>${k}</b> — ${terms[k]}</div>`).join('')}
+function copyQuestions(){navigator.clipboard?.writeText(latestQuestions.join('\\n')).then(()=>alert('Questions copied.'))}
+function renderHistory(){
+ const h=JSON.parse(localStorage.getItem('carelens_history')||'[]');
+ document.getElementById('historyList').innerHTML=h.length?h.map(x=>`<div class="term"><b>${x.date}</b><p>${x.summary}</p><span class="small">${x.findings.join(' • ')}</span></div>`).join(''):'<p class="small">No local analyses yet.</p>';
+}
+function clearHistory(){localStorage.removeItem('carelens_history');renderHistory()}
+function setLanguage(l){alert('Prototype language mode selected: '+l+'\\nFor the hackathon, connect an LLM translation layer for full multilingual output.')}
+renderTerms();renderHistory();
+</script>
+</body>
+</html>
